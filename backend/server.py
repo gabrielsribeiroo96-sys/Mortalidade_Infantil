@@ -2,6 +2,7 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import io
@@ -334,6 +335,9 @@ def busca_cep(cep: str):
 
 
 app.include_router(api_router)
+
+# Comprime respostas grandes (GeoJSON do mapa, JSON da API, CSVs)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS só é necessário quando o frontend roda em outro domínio (ex.: `yarn start` local)
 cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
