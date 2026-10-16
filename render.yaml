@@ -1,0 +1,13 @@
+# Blueprint do Render: New > Blueprint > selecione este repositório.
+# MONGO_URL é pedido no painel (string de conexão do MongoDB Atlas).
+services:
+  - type: web
+    name: observatorio-mortalidade-infantil
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: mortalidade_infantil
