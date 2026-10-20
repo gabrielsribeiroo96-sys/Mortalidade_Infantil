@@ -37,6 +37,8 @@ jobs:
         run: python importar_datasus.py
 
       - name: Commit se os dados mudaram
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
           if git diff --quiet -- backend/dados/datasus.json.gz; then
             echo "Sem dados novos no DATASUS."
@@ -47,3 +49,5 @@ jobs:
           git add backend/dados/datasus.json.gz
           git commit -m "Atualiza dados do DATASUS"
           git push
+          # Pushes feitos pelo GITHUB_TOKEN não disparam outros workflows: chama o deploy aqui
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then curl -fsS -X POST "$RENDER_DEPLOY_HOOK"; fi

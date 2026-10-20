@@ -99,7 +99,7 @@ O `Dockerfile` gera uma única imagem: o FastAPI serve a API em `/api` e o build
    - Copie a string de conexão (`mongodb+srv://...`).
 2. **Render:** em <https://render.com>, vá em *New → Blueprint*, escolha este repositório e informe `MONGO_URL` quando pedido. O `render.yaml` cuida do resto.
 3. Na primeira inicialização, o backend carrega os dados do DATASUS no Atlas sozinho.
-4. A cada push na branch `main`, o Render faz o deploy de novo automaticamente.
+4. **Deploy automático:** no Render, abra *Settings → Deploy Hook* e copie a URL. No GitHub, crie o secret `RENDER_DEPLOY_HOOK` com essa URL, em *Settings → Secrets and variables → Actions*. A partir daí, cada push no `main` dispara o deploy pelo workflow `deploy.yml`.
 
 No plano gratuito do Render, o serviço "dorme" após 15 minutos sem acesso. O primeiro acesso depois disso leva cerca de 1 minuto. Antes de uma apresentação, abra o site um pouco antes.
 
