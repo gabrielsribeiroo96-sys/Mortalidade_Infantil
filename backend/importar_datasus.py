@@ -308,9 +308,12 @@ def main():
                           ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     novo = gzip.compress(conteudo, mtime=0)
 
-    if SNAPSHOT_PATH.exists() and SNAPSHOT_PATH.read_bytes() == novo:
-        print("Nenhuma mudança nos dados.")
-        return
+    # Compara pela versão: o gzip pode gerar bytes diferentes entre sistemas para o mesmo conteúdo
+    if SNAPSHOT_PATH.exists():
+        with gzip.open(SNAPSHOT_PATH, "rt", encoding="utf-8") as f:
+            if json.load(f)["meta"].get("versao") == meta["versao"]:
+                print("Nenhuma mudança nos dados.")
+                return
     SNAPSHOT_PATH.parent.mkdir(exist_ok=True)
     SNAPSHOT_PATH.write_bytes(novo)
     print(f"Snapshot salvo em {SNAPSHOT_PATH.relative_to(ROOT_DIR)} ({len(novo) / 1e6:.1f} MB), "
