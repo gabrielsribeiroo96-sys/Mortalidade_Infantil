@@ -71,7 +71,9 @@ export function FilterBar({ meta, filters, setFilters, causes }) {
             </SelectTrigger>
             <SelectContent>
               {meta.years.map((y) => (
-                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                <SelectItem key={y} value={String(y)}>
+                  {y}{meta.source?.anos_preliminares?.includes(y) ? " (preliminar)" : ""}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

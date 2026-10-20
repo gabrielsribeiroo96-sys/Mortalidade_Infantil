@@ -59,17 +59,26 @@ yarn start                                          # http://localhost:3000
 
 ## Atualizando os dados do DATASUS
 
-Só é preciso fazer isso quando o DATASUS publicar um ano novo:
+O DATASUS só fecha os dados de um ano no fim do ano seguinte. Até lá, publica arquivos **preliminares** (pastas `PRELIM` do FTP), atualizados todo mês. O importador usa:
+- o arquivo definitivo, quando ele existe;
+- senão, o preliminar, e o ano aparece como "(preliminar)" no painel;
+- de 2018 até o ano passado. O ano corrente fica de fora porque só tem alguns meses de dados.
+
+**Automático:** o workflow `.github/workflows/atualizar-dados.yml` roda no dia 5 de cada mês. Se o DATASUS publicou algo novo, ele commita o `backend/dados/datasus.json.gz` e o Render faz o deploy, o que recarrega o banco. Para rodar na hora, vá em *Actions → Atualizar dados do DATASUS → Run workflow*.
+
+> O GitHub pausa workflows agendados em repositórios sem nenhum commit por 60 dias. Se isso acontecer, reative o workflow na aba *Actions*.
+
+**Manual:**
 
 ```bash
 cd backend
 pip install -r requirements-dev.txt
-python importar_datasus.py --anos 2018 2019 2020 2021 2022 2023 2024 2025
-git add dados/datasus.json.gz && git commit -m "Atualiza dados do DATASUS"
-git push        # o Render faz o deploy e o backend recarrega o banco sozinho
+python importar_datasus.py                          # 2018 até o ano passado
+python importar_datasus.py --anos 2023 --ufs SP RJ  # só um recorte
+python importar_datasus.py --dry-run                # processa sem salvar
 ```
 
-Os downloads ficam em cache em `backend/.cache_datasus/`. Uma importação completa do zero baixa cerca de 380 arquivos. Use `--ufs SP RJ` para um recorte e `--dry-run` para processar sem salvar.
+Os downloads ficam em cache em `backend/.cache_datasus/`, cerca de 2 GB. Os preliminares são baixados de novo quando mudam no FTP. Se nada mudou, o arquivo de dados fica idêntico.
 
 ## Testes
 

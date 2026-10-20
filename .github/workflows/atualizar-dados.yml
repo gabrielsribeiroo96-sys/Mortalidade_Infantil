@@ -1,0 +1,49 @@
+# Busca dados novos no FTP do DATASUS todo mês. Se algo mudou (ano novo,
+# preliminar atualizado ou ano que virou definitivo), commita o snapshot e o
+# Render faz o deploy sozinho. Também pode ser disparado à mão na aba Actions.
+name: Atualizar dados do DATASUS
+
+on:
+  schedule:
+    - cron: "0 9 5 * *" # dia 5 de cada mês, 06:00 (Brasília)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache dos downloads do DATASUS
+        uses: actions/cache@v4
+        with:
+          path: backend/.cache_datasus
+          key: datasus-${{ github.run_id }}
+          restore-keys: datasus-
+
+      - name: Instalar dependências
+        run: pip install datasus-dbc
+
+      - name: Gerar snapshot
+        working-directory: backend
+        run: python importar_datasus.py
+
+      - name: Commit se os dados mudaram
+        run: |
+          if git diff --quiet -- backend/dados/datasus.json.gz; then
+            echo "Sem dados novos no DATASUS."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/dados/datasus.json.gz
+          git commit -m "Atualiza dados do DATASUS"
+          git push

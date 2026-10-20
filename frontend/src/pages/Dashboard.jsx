@@ -23,7 +23,10 @@ export default function Dashboard() {
   useEffect(() => {
     getMeta().then((m) => {
       setMeta(m);
-      const latest = m.years[m.years.length - 1];
+      // Abre no último ano com dados definitivos (preliminares continuam selecionáveis)
+      const prelim = m.source?.anos_preliminares || [];
+      const definitivos = m.years.filter((y) => !prelim.includes(y));
+      const latest = (definitivos.length ? definitivos : m.years).at(-1);
       setFilters({ year: latest, uf: null, search: "", cause: "ALL" });
     });
   }, []);
@@ -84,6 +87,11 @@ export default function Dashboard() {
               ? "Dados oficiais do SIM e SINASC (DATASUS), por município de residência. Óbitos evitáveis: classificação aproximada da Lista Brasileira de Causas Evitáveis."
               : "Dados representativos baseados em SIM/SINASC (DATASUS) para fins de demonstração acadêmica."}
             {" "}Municípios/IBGE e ViaCEP via APIs públicas gratuitas.
+            {meta.source?.anos_preliminares?.includes(filters.year) && (
+              <b className="text-foreground">
+                {" "}Os dados de {filters.year} são preliminares: o DATASUS ainda pode incluir óbitos e nascimentos até o fechamento do ano.
+              </b>
+            )}
             {loading && <span className="ml-2 inline-flex items-center gap-1 text-primary"><Loader2 className="h-3 w-3 animate-spin" /> atualizando…</span>}
           </p>
         </div>
